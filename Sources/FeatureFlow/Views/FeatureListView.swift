@@ -123,66 +123,71 @@ struct FeatureRowView: View {
     @ObservedObject var client: SupabaseClient
 
     var body: some View {
-        HStack(alignment: .top, spacing: 12) {
-            // Vote Button
-            VStack(spacing: 4) {
+        HStack(alignment: .top, spacing: 16) {
+            // Feature Content
+            VStack(alignment: .leading, spacing: 10) {
+                // Title
+                Text(feature.title)
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(.primary)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                // Status Badge
+                StatusBadge(status: feature.status)
+
+                // Description (optional, can be hidden for cleaner look)
+                if !feature.description.isEmpty {
+                    Text(feature.description)
+                        .font(.system(size: 14))
+                        .foregroundColor(.secondary)
+                        .lineLimit(2)
+                }
+            }
+
+            Spacer()
+
+            // Vote Button - Prominent rounded style
+            VStack(spacing: 6) {
                 Button(action: {
                     Task {
                         await client.upvoteFeature(feature)
                     }
                 }) {
-                    Image(systemName: client.hasVotedForFeature(feature.id) ? "arrow.up.circle.fill" : "arrow.up.circle")
-                        .font(.title2)
-                        .foregroundColor(client.hasVotedForFeature(feature.id) ? .blue : .gray)
+                    Image(systemName: "arrow.up")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white)
+                        .frame(width: 32, height: 32)
                 }
                 .disabled(client.hasVotedForFeature(feature.id))
 
                 Text("\(feature.votesCount)")
-                    .font(.caption)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.gray)
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundColor(.white)
             }
-            .frame(width: 50)
-
-            // Feature Content
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Text(feature.title)
-                        .font(.headline)
-                        .foregroundColor(.primary)
-                        .lineLimit(2)
-
-                    Spacer()
-
-                    StatusBadge(status: feature.status)
-                }
-
-                Text(feature.description)
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .lineLimit(2)
-
-                HStack {
-                    Label("\(feature.comments?.count ?? 0)", systemImage: "bubble.left")
-                        .font(.caption)
-                        .foregroundColor(.gray)
-
-                    Spacer()
-
-                    Text(relativeDate(from: feature.createdAt))
-                        .font(.caption)
-                        .foregroundColor(.gray)
-                }
-            }
+            .padding(.vertical, 16)
+            .padding(.horizontal, 12)
+            .background(
+                LinearGradient(
+                    gradient: Gradient(colors: [
+                        Color(red: 0.2, green: 0.5, blue: 0.95),
+                        Color(red: 0.3, green: 0.6, blue: 1.0)
+                    ]),
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+            .cornerRadius(16)
+            .opacity(client.hasVotedForFeature(feature.id) ? 0.6 : 1.0)
         }
-        .padding()
+        .padding(20)
         #if os(iOS)
         .background(Color(.systemBackground))
         #else
         .background(Color(NSColor.windowBackgroundColor))
         #endif
-        .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
+        .cornerRadius(16)
+        .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 2)
     }
 
     private func relativeDate(from date: Date) -> String {
@@ -198,21 +203,20 @@ struct StatusBadge: View {
 
     var body: some View {
         Text(status.displayName)
-            .font(.caption)
-            .fontWeight(.semibold)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 4)
-            .background(backgroundColor)
-            .foregroundColor(.white)
-            .cornerRadius(6)
+            .font(.system(size: 12, weight: .medium))
+            .padding(.horizontal, 10)
+            .padding(.vertical, 5)
+            .background(backgroundColor.opacity(0.15))
+            .foregroundColor(backgroundColor)
+            .cornerRadius(8)
     }
 
     private var backgroundColor: Color {
         switch status {
-        case .open: return .gray
-        case .planned: return .blue
-        case .inProgress: return .orange
-        case .completed: return .green
+        case .open: return Color.gray
+        case .planned: return Color.blue
+        case .inProgress: return Color.orange
+        case .completed: return Color.green
         }
     }
 }
